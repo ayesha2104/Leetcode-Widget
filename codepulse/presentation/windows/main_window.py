@@ -8,8 +8,8 @@ floating widgets managed by :class:`DesktopWidgetManager`.
 
 from __future__ import annotations
 
-from PySide6.QtCore import QSize, Qt
-from PySide6.QtGui import QColor, QIcon, QPainter, QPixmap
+from PySide6.QtCore import QPointF, QSize, Qt
+from PySide6.QtGui import QColor, QIcon, QPainter, QPainterPath, QPen, QPixmap
 from PySide6.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -36,9 +36,24 @@ from codepulse.utils.color import parse_color
 _TRAY_ICON_SIZE = 32
 _PANEL_SIZE = QSize(280, 190)
 
+# An EKG-style heartbeat trace, as fractions of the icon's size: flat, a
+# small dip, a tall spike, a deep drop, flat again -- the same "pulse"
+# shape used by scripts/generate_icon.py for the packaged .ico, so the tray
+# icon and the taskbar/file icon read as the same mark.
+_PULSE_TRACE_POINTS = (
+    (0.16, 0.50),
+    (0.34, 0.50),
+    (0.42, 0.34),
+    (0.50, 0.66),
+    (0.58, 0.14),
+    (0.66, 0.72),
+    (0.74, 0.50),
+    (0.86, 0.50),
+)
+
 
 def _build_pulse_icon(color: QColor) -> QIcon:
-    """Draw a simple filled-circle "pulse" glyph for the tray/window icon."""
+    """Draw the CodePulse "pulse" glyph (a filled circle with an EKG trace) for the tray/window icon."""
     pixmap = QPixmap(_TRAY_ICON_SIZE, _TRAY_ICON_SIZE)
     pixmap.fill(Qt.GlobalColor.transparent)
 
@@ -48,6 +63,19 @@ def _build_pulse_icon(color: QColor) -> QIcon:
     painter.setPen(Qt.PenStyle.NoPen)
     margin = 2
     painter.drawEllipse(margin, margin, _TRAY_ICON_SIZE - 2 * margin, _TRAY_ICON_SIZE - 2 * margin)
+
+    trace = QPainterPath()
+    size = _TRAY_ICON_SIZE
+    start_x, start_y = _PULSE_TRACE_POINTS[0]
+    trace.moveTo(QPointF(start_x * size, start_y * size))
+    for x, y in _PULSE_TRACE_POINTS[1:]:
+        trace.lineTo(QPointF(x * size, y * size))
+
+    pen = QPen(Qt.GlobalColor.white)
+    pen.setWidthF(size * 0.09)
+    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+    pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+    painter.strokePath(trace, pen)
     painter.end()
 
     return QIcon(pixmap)
