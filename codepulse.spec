@@ -57,4 +57,5 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     icon=str(project_root / "assets" / "icons" / "codepulse.ico"),
+    version=str(project_root / "version_info.txt"),
 )
