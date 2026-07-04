@@ -39,9 +39,17 @@ currently show sample data — LeetCode's public API doesn't expose an
 upcoming-contest schedule or rating history, and there's no data source at
 all for activity/badges yet.
 
-## Install & run
+## Download
 
-**Option 1 — packaged .exe** (no Python required):
+**[⬇ Download CodePulse.exe](https://github.com/ayesha2104/Leetcode-Widget/releases/latest/download/CodePulse.exe)**
+— no Python or install required, just double-click and run. Windows
+SmartScreen will warn about an unrecognized publisher on first launch (the
+build isn't code-signed) — choose "More info → Run anyway". See
+[docs/installation.md](docs/installation.md) for the full walkthrough.
+
+## Install & run from source
+
+**Option 1 — build the .exe yourself:**
 
 ```powershell
 git clone https://github.com/ayesha2104/Leetcode-Widget.git
@@ -52,9 +60,7 @@ pip install -e ".[dev]"
 python scripts/build.py
 ```
 
-Then double-click `dist\CodePulse.exe`. See [docs/installation.md](docs/installation.md)
-for the full walkthrough, including the SmartScreen warning you'll see on
-first run (the build isn't code-signed).
+Then double-click `dist\CodePulse.exe`.
 
 **Option 2 — run from source:**
 
