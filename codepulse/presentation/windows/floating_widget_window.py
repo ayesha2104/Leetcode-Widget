@@ -41,7 +41,7 @@ class FloatingWidgetWindow(FramelessWindow):
         snapshot: DashboardSnapshot | None = None,
         goal_progress: list[GoalProgress] | None = None,
     ) -> None:
-        super().__init__(theme, always_on_top=True, resizable=False)
+        super().__init__(theme, always_on_top=True, resizable=False, drag_from_content=True)
         self.placed_widget = placed_widget
         self._snapshot = snapshot
         self._goal_progress = goal_progress
@@ -79,6 +79,7 @@ class FloatingWidgetWindow(FramelessWindow):
             self._goal_progress,
         )
         self._content_layout.addWidget(content)
+        self.refresh_content_drag_filters()
 
     def apply_theme(self, theme: Theme) -> None:
         """Restyle the window chrome and re-render the content for the given theme."""

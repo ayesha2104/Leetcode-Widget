@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from PySide6.QtCore import QPoint, QSize, Qt
+from unittest.mock import MagicMock
+
+from PySide6.QtCore import QEvent, QPoint, QPointF, QSize, Qt
+from PySide6.QtGui import QMouseEvent
+from PySide6.QtWidgets import QLabel, QPushButton
 
 from codepulse.presentation.themes.theme_manager import load_theme
 from codepulse.presentation.windows.base_frameless_window import (
@@ -11,6 +15,18 @@ from codepulse.presentation.windows.base_frameless_window import (
 )
 
 WINDOW_SIZE = QSize(300, 200)
+
+
+def _left_press_event(pos: QPointF | None = None) -> QMouseEvent:
+    pos = pos if pos is not None else QPointF(5, 5)
+    return QMouseEvent(
+        QEvent.Type.MouseButtonPress,
+        pos,
+        pos,
+        Qt.MouseButton.LeftButton,
+        Qt.MouseButton.LeftButton,
+        Qt.KeyboardModifier.NoModifier,
+    )
 
 
 def test_edge_at_detects_left_edge() -> None:
@@ -121,3 +137,86 @@ def test_theme_property_reflects_current_theme(qtbot) -> None:
     qtbot.addWidget(window)
 
     assert window.theme.name == "dark"
+
+
+def test_drag_from_content_disabled_by_default(qtbot) -> None:
+    """Without opting in, a press on a child widget must not start a move --
+    this is the pre-fix behavior every other FramelessWindow subclass
+    (dialogs, MainWindow) still relies on."""
+    window = FramelessWindow(load_theme("dark"))
+    qtbot.addWidget(window)
+    label = QLabel("content", window)
+    window.refresh_content_drag_filters()  # no-op since drag_from_content=False
+
+    mock_handle = MagicMock()
+    window.windowHandle = lambda: mock_handle  # type: ignore[method-assign]
+
+    handled = window.eventFilter(label, _left_press_event())
+
+    assert handled is False
+    mock_handle.startSystemMove.assert_not_called()
+
+
+def test_drag_from_content_starts_system_move_on_child_press(qtbot) -> None:
+    """The actual bug fix: content (e.g. a QLabel showing stats) fully
+    covers a FloatingWidgetWindow, so a press on it must still be able to
+    start dragging the window, not get silently swallowed."""
+    window = FramelessWindow(load_theme("dark"), resizable=False, drag_from_content=True)
+    qtbot.addWidget(window)
+    label = QLabel("content", window)
+    window.refresh_content_drag_filters()
+
+    mock_handle = MagicMock()
+    window.windowHandle = lambda: mock_handle  # type: ignore[method-assign]
+
+    handled = window.eventFilter(label, _left_press_event())
+
+    assert handled is True
+    mock_handle.startSystemMove.assert_called_once()
+
+
+def test_drag_from_content_does_not_interfere_with_button_clicks(qtbot) -> None:
+    """A button inside the content (e.g. the Daily Challenge widget's
+    "Solve" button) must keep receiving real clicks instead of every press
+    being hijacked into a window drag."""
+    window = FramelessWindow(load_theme("dark"), drag_from_content=True)
+    qtbot.addWidget(window)
+    button = QPushButton("Solve", window)
+    window.refresh_content_drag_filters()
+
+    mock_handle = MagicMock()
+    window.windowHandle = lambda: mock_handle  # type: ignore[method-assign]
+    clicked = MagicMock()
+    button.clicked.connect(clicked)
+
+    qtbot.mouseClick(button, Qt.MouseButton.LeftButton)
+
+    clicked.assert_called_once()
+    mock_handle.startSystemMove.assert_not_called()
+
+
+def test_refresh_content_drag_filters_is_idempotent_for_new_children(qtbot) -> None:
+    """Re-rendering content (as FloatingWidgetWindow does on theme/data
+    updates) replaces child widgets; calling refresh again must pick up the
+    new ones without needing any extra bookkeeping."""
+    window = FramelessWindow(load_theme("dark"), resizable=False, drag_from_content=True)
+    qtbot.addWidget(window)
+    window.refresh_content_drag_filters()
+
+    new_label = QLabel("refreshed content", window)
+    window.refresh_content_drag_filters()
+
+    mock_handle = MagicMock()
+    window.windowHandle = lambda: mock_handle  # type: ignore[method-assign]
+    handled = window.eventFilter(new_label, _left_press_event())
+
+    assert handled is True
+    mock_handle.startSystemMove.assert_called_once()
+
+
+def test_begin_move_or_resize_is_noop_without_a_window_handle(qtbot) -> None:
+    window = FramelessWindow(load_theme("dark"))
+    qtbot.addWidget(window)
+    window.windowHandle = lambda: None  # type: ignore[method-assign]
+
+    window._begin_move_or_resize(QPoint(5, 5))  # must not raise
