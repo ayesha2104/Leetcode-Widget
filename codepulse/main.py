@@ -11,6 +11,7 @@ import sys
 from datetime import timedelta
 
 from loguru import logger
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 
 from codepulse.application.services.goal_service import GoalService
@@ -36,6 +37,7 @@ from codepulse.infrastructure.providers.registry import get_provider
 from codepulse.presentation.desktop_widget_manager import DesktopWidgetManager
 from codepulse.presentation.themes.theme_manager import ThemeManager
 from codepulse.presentation.windows.main_window import MainWindow
+from codepulse.utils.resource_paths import get_assets_dir
 
 
 def main() -> int:
@@ -49,6 +51,10 @@ def main() -> int:
 
     app = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)  # floating widgets/tray keep it alive when hidden
+
+    icon_path = get_assets_dir() / "icons" / "codepulse.ico"
+    if icon_path.exists():
+        app.setWindowIcon(QIcon(str(icon_path)))
 
     theme_manager = ThemeManager(preferences.theme.value)
 

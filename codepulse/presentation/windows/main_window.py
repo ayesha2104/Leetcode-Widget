@@ -97,15 +97,12 @@ class MainWindow(FramelessWindow):
         settings_button = self._make_chrome_button("⚙", "Settings")
         settings_button.clicked.connect(self._on_settings_clicked)
 
-        hide_button = self._make_chrome_button("–", "Hide to tray")
+        hide_button = self._make_chrome_button("✕", "Hide to tray")
         hide_button.clicked.connect(self.hide)
-
-        exit_button = self._make_chrome_button("✕", "Exit")
-        exit_button.clicked.connect(self._on_exit_requested)
 
         title_bar.addWidget(title_label)
         title_bar.addStretch()
-        for button in (theme_button, settings_button, hide_button, exit_button):
+        for button in (theme_button, settings_button, hide_button):
             title_bar.addWidget(button)
         root_layout.addLayout(title_bar)
 

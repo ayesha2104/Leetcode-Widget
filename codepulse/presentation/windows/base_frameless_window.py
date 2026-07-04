@@ -25,6 +25,7 @@ from PySide6.QtWidgets import (
 from codepulse.presentation.themes.theme import Theme
 from codepulse.utils.color import parse_color
 from codepulse.utils.windows_blur import enable_acrylic_blur
+from codepulse.utils.windows_desktop_layer import pin_to_desktop
 
 RESIZE_MARGIN_PX = 8
 MIN_WINDOW_SIZE = QSize(220, 140)
@@ -74,16 +75,22 @@ class FramelessWindow(QWidget):
         always_on_top: bool = True,
         resizable: bool = True,
         drag_from_content: bool = False,
+        pin_to_desktop_layer: bool = False,
+        hide_from_taskbar: bool = False,
     ) -> None:
         super().__init__()
         self._theme = theme
         self._resizable = resizable
         self._acrylic_enabled = False
         self._drag_from_content = drag_from_content
+        self._pin_to_desktop_layer = pin_to_desktop_layer
+        self._pinned_to_desktop = False
 
         flags = Qt.WindowType.FramelessWindowHint | Qt.WindowType.Window
         if always_on_top:
             flags |= Qt.WindowType.WindowStaysOnTopHint
+        if hide_from_taskbar:
+            flags |= Qt.WindowType.Tool
         self.setWindowFlags(flags)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setMouseTracking(True)
@@ -109,6 +116,8 @@ class FramelessWindow(QWidget):
     def showEvent(self, event: QShowEvent) -> None:
         super().showEvent(event)
         self._try_enable_acrylic()
+        if self._pin_to_desktop_layer and not self._pinned_to_desktop:
+            self._pinned_to_desktop = pin_to_desktop(int(self.winId()))
 
     def _try_enable_acrylic(self) -> None:
         if not self._theme.glass.enabled:

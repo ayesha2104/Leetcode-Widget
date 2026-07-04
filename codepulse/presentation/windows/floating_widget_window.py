@@ -1,10 +1,19 @@
-"""A single desktop widget's floating, always-on-top window.
+"""A single desktop widget's floating window, pinned to the desktop layer.
 
 Wraps one :class:`~codepulse.domain.models.widget.PlacedWidget` -- renders
 its content via the desktop widget registry, and exposes a hover-to-reveal
 remove button plus drag-to-reposition (inherited from
 :class:`FramelessWindow`), matching the reference design's placed-widget
 card interaction.
+
+Not always-on-top: instead, ``pin_to_desktop_layer=True`` best-effort
+reparents the window behind every application window, at the same visual
+layer as desktop icons (see
+:func:`codepulse.utils.windows_desktop_layer.pin_to_desktop`), so widgets
+behave like real desktop icons rather than floating over whatever app has
+focus. ``hide_from_taskbar=True`` additionally keeps each widget out of the
+taskbar and Alt+Tab. If the pin can't be completed on a given Windows
+build, the widget just falls back to being a normal, non-topmost window.
 """
 
 from __future__ import annotations
@@ -41,7 +50,14 @@ class FloatingWidgetWindow(FramelessWindow):
         snapshot: DashboardSnapshot | None = None,
         goal_progress: list[GoalProgress] | None = None,
     ) -> None:
-        super().__init__(theme, always_on_top=True, resizable=False, drag_from_content=True)
+        super().__init__(
+            theme,
+            always_on_top=False,
+            resizable=False,
+            drag_from_content=True,
+            pin_to_desktop_layer=True,
+            hide_from_taskbar=True,
+        )
         self.placed_widget = placed_widget
         self._snapshot = snapshot
         self._goal_progress = goal_progress
