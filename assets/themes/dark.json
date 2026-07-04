@@ -1,0 +1,23 @@
+{
+  "name": "dark",
+  "display_name": "Dark",
+  "colors": {
+    "background": "#1a1b26",
+    "surface": "rgba(30, 32, 44, 0.72)",
+    "surface_alt": "rgba(255, 255, 255, 0.04)",
+    "border": "rgba(255, 255, 255, 0.10)",
+    "text_primary": "#e6e6ee",
+    "text_secondary": "#9a9ab0",
+    "accent": "#7aa2f7",
+    "accent_secondary": "#bb9af7",
+    "success": "#9ece6a",
+    "warning": "#e0af68",
+    "error": "#f7768e"
+  },
+  "glass": {
+    "enabled": true,
+    "blur_radius": 24,
+    "background_alpha": 0.72
+  },
+  "corner_radius": 18
+}

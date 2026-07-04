@@ -1,0 +1,23 @@
+{
+  "name": "cyberpunk",
+  "display_name": "Cyberpunk",
+  "colors": {
+    "background": "#0a0014",
+    "surface": "rgba(20, 6, 36, 0.75)",
+    "surface_alt": "rgba(255, 0, 200, 0.06)",
+    "border": "rgba(0, 255, 240, 0.25)",
+    "text_primary": "#f2f0ff",
+    "text_secondary": "#b6a9e0",
+    "accent": "#ff2ec4",
+    "accent_secondary": "#00fff0",
+    "success": "#39ff88",
+    "warning": "#ffe93a",
+    "error": "#ff3860"
+  },
+  "glass": {
+    "enabled": true,
+    "blur_radius": 28,
+    "background_alpha": 0.75
+  },
+  "corner_radius": 14
+}

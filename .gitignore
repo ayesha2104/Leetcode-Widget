@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+*.spec
+!codepulse.spec
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Testing & coverage
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Packaging output
+scripts/build_output/
+
+# Runtime data (created by the app, never committed)
+data/
+*.db
+*.sqlite3
+*.log
+logs/
+
+# User configuration (contains local secrets/settings, ship .env.example instead)
+.env
+
+# Docs build output
+site/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+Thumbs.db
+.DS_Store

@@ -1,0 +1,23 @@
+{
+  "name": "light",
+  "display_name": "Light",
+  "colors": {
+    "background": "#f5f6fa",
+    "surface": "rgba(255, 255, 255, 0.80)",
+    "surface_alt": "rgba(0, 0, 0, 0.03)",
+    "border": "rgba(0, 0, 0, 0.08)",
+    "text_primary": "#1c1d26",
+    "text_secondary": "#5c5e70",
+    "accent": "#3b6fe0",
+    "accent_secondary": "#8c5ce0",
+    "success": "#1f9e5a",
+    "warning": "#c8850f",
+    "error": "#d1394c"
+  },
+  "glass": {
+    "enabled": true,
+    "blur_radius": 20,
+    "background_alpha": 0.80
+  },
+  "corner_radius": 18
+}

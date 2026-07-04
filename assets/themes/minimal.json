@@ -1,0 +1,23 @@
+{
+  "name": "minimal",
+  "display_name": "Minimal",
+  "colors": {
+    "background": "#ffffff",
+    "surface": "rgba(255, 255, 255, 0.96)",
+    "surface_alt": "rgba(0, 0, 0, 0.02)",
+    "border": "rgba(0, 0, 0, 0.10)",
+    "text_primary": "#111111",
+    "text_secondary": "#6b6b6b",
+    "accent": "#111111",
+    "accent_secondary": "#6b6b6b",
+    "success": "#2e7d32",
+    "warning": "#b26a00",
+    "error": "#c62828"
+  },
+  "glass": {
+    "enabled": false,
+    "blur_radius": 0,
+    "background_alpha": 0.96
+  },
+  "corner_radius": 12
+}
