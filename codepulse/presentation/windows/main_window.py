@@ -52,6 +52,76 @@ _PULSE_TRACE_POINTS = (
 )
 
 
+_CHROME_ICON_SIZE = 16
+
+
+def _draw_theme_icon(color: QColor) -> QIcon:
+    """A half-filled circle (light/dark split), representing theme switching."""
+    size = _CHROME_ICON_SIZE
+    pixmap = QPixmap(size, size)
+    pixmap.fill(Qt.GlobalColor.transparent)
+
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    pen = QPen(color)
+    pen.setWidthF(1.3)
+    painter.setPen(pen)
+    margin = 1
+    painter.setBrush(color)
+    painter.drawPie(margin, margin, size - 2 * margin, size - 2 * margin, 90 * 16, 180 * 16)
+    painter.setBrush(Qt.BrushStyle.NoBrush)
+    painter.drawEllipse(margin, margin, size - 2 * margin, size - 2 * margin)
+    painter.end()
+
+    return QIcon(pixmap)
+
+
+def _draw_settings_icon(color: QColor) -> QIcon:
+    """Three horizontal slider rows, the common "settings/preferences" glyph."""
+    size = _CHROME_ICON_SIZE
+    pixmap = QPixmap(size, size)
+    pixmap.fill(Qt.GlobalColor.transparent)
+
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    pen = QPen(color)
+    pen.setWidthF(1.3)
+    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+    painter.setPen(pen)
+
+    rows = (4, 8, 12)
+    knob_x = (10.0, 5.0, 9.0)
+    for y in rows:
+        painter.drawLine(QPointF(2, y), QPointF(size - 2, y))
+    painter.setPen(Qt.PenStyle.NoPen)
+    painter.setBrush(color)
+    for y, knob in zip(rows, knob_x, strict=True):
+        painter.drawEllipse(QPointF(knob, y), 1.6, 1.6)
+    painter.end()
+
+    return QIcon(pixmap)
+
+
+def _draw_close_icon(color: QColor) -> QIcon:
+    """A simple X, drawn rather than relying on a font glyph."""
+    size = _CHROME_ICON_SIZE
+    pixmap = QPixmap(size, size)
+    pixmap.fill(Qt.GlobalColor.transparent)
+
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    pen = QPen(color)
+    pen.setWidthF(1.6)
+    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+    painter.setPen(pen)
+    margin = 4
+    painter.drawLine(margin, margin, size - margin, size - margin)
+    painter.drawLine(size - margin, margin, margin, size - margin)
+    painter.end()
+
+    return QIcon(pixmap)
+
+
 def _build_pulse_icon(color: QColor) -> QIcon:
     """Draw the CodePulse "pulse" glyph (a filled circle with an EKG trace) for the tray/window icon."""
     pixmap = QPixmap(_TRAY_ICON_SIZE, _TRAY_ICON_SIZE)
@@ -119,18 +189,20 @@ class MainWindow(FramelessWindow):
         title_label = QLabel("CodePulse")
         title_label.setProperty("role", "heading")
 
-        theme_button = self._make_chrome_button("\U0001f3a8", "Cycle theme")
-        theme_button.clicked.connect(self._theme_manager.cycle_theme)
+        self._theme_button = self._make_chrome_button("Cycle theme")
+        self._theme_button.clicked.connect(self._theme_manager.cycle_theme)
 
-        settings_button = self._make_chrome_button("⚙", "Settings")
-        settings_button.clicked.connect(self._on_settings_clicked)
+        self._settings_button = self._make_chrome_button("Settings")
+        self._settings_button.clicked.connect(self._on_settings_clicked)
 
-        hide_button = self._make_chrome_button("✕", "Hide to tray")
-        hide_button.clicked.connect(self.hide)
+        self._hide_button = self._make_chrome_button("Hide to tray")
+        self._hide_button.clicked.connect(self.hide)
+
+        self._refresh_chrome_icons()
 
         title_bar.addWidget(title_label)
         title_bar.addStretch()
-        for button in (theme_button, settings_button, hide_button):
+        for button in (self._theme_button, self._settings_button, self._hide_button):
             title_bar.addWidget(button)
         root_layout.addLayout(title_bar)
 
@@ -147,11 +219,26 @@ class MainWindow(FramelessWindow):
         root_layout.addWidget(self._count_label)
 
     @staticmethod
-    def _make_chrome_button(glyph: str, tooltip: str) -> QPushButton:
-        button = QPushButton(glyph)
+    def _make_chrome_button(tooltip: str) -> QPushButton:
+        button = QPushButton()
         button.setToolTip(tooltip)
         button.setFixedSize(28, 28)
+        button.setIconSize(QSize(_CHROME_ICON_SIZE, _CHROME_ICON_SIZE))
         return button
+
+    def _refresh_chrome_icons(self) -> None:
+        """(Re)draw the title-bar icons in the current theme's text color.
+
+        Drawn with QPainter rather than rendered from a Unicode glyph --
+        the app-wide stylesheet pins the font to "Segoe UI", which has no
+        automatic per-glyph fallback for symbols like the emoji/dingbats
+        previously used here, so they rendered as unreadable placeholder
+        marks instead of an icon.
+        """
+        color = parse_color(self._theme_manager.current_theme.colors.text_primary)
+        self._theme_button.setIcon(_draw_theme_icon(color))
+        self._settings_button.setIcon(_draw_settings_icon(color))
+        self._hide_button.setIcon(_draw_close_icon(color))
 
     def _on_add_widget_clicked(self) -> None:
         picker = WidgetPickerDialog(self._theme_manager.current_theme)
@@ -221,6 +308,7 @@ class MainWindow(FramelessWindow):
     def _on_theme_changed(self, theme: Theme) -> None:
         self.apply_theme(theme)
         self._apply_stylesheet()
+        self._refresh_chrome_icons()
         if self._tray_icon is not None:
             icon = _build_pulse_icon(parse_color(theme.colors.accent))
             self.setWindowIcon(icon)
