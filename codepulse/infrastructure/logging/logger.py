@@ -50,7 +50,10 @@ def configure_logging(settings: AppSettings) -> None:
     settings.log_dir.mkdir(parents=True, exist_ok=True)
 
     logger.remove()
-    logger.add(sys.stderr, level=settings.log_level, format=_LOG_FORMAT, colorize=True)
+    if sys.stderr is not None:
+        # A windowed (console=False) PyInstaller build has no attached
+        # console, so sys.stderr is None -- loguru.add() would raise.
+        logger.add(sys.stderr, level=settings.log_level, format=_LOG_FORMAT, colorize=True)
     logger.add(
         settings.log_dir / "codepulse.log",
         level=settings.log_level,

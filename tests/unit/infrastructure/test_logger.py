@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import logging
+import sys
 from pathlib import Path
 
+import pytest
 from loguru import logger
 
 from codepulse.infrastructure.config.settings import AppSettings
@@ -47,3 +49,20 @@ def test_stdlib_logging_with_a_custom_level_falls_back_to_level_number(tmp_path:
 
     log_file = settings.log_dir / "codepulse.log"
     assert "custom level message" in log_file.read_text(encoding="utf-8")
+
+
+def test_configure_logging_does_not_crash_when_stderr_is_none(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """A windowed (console=False) PyInstaller build has sys.stderr set to
+    None -- loguru.add(None, ...) raises TypeError, which previously crashed
+    the packaged .exe on startup before any window could even open."""
+    monkeypatch.setattr(sys, "stderr", None)
+    settings = AppSettings(data_dir=tmp_path)
+
+    configure_logging(settings)
+    logger.info("hello with no console")
+    logger.complete()
+
+    log_file = settings.log_dir / "codepulse.log"
+    assert "hello with no console" in log_file.read_text(encoding="utf-8")
